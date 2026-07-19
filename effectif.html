@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ARC TROOPERS // EFFECTIF</title>
+<style>
+  :root{
+    --bg: #12151b; --panel: #1a1e27; --panel-2: #1f2430;
+    --line: #2e3444; --line-bright: #454d63;
+    --ink: #e9e6da; --ink-dim: #8b93a4;
+    --red: #9c2b2b; --red-bright: #c33c3c;
+    --gold: #c9a227; --green: #4a7a4a; --green-bright:#7fbf7f;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    background: radial-gradient(ellipse at 20% -10%, rgba(156,43,43,0.10), transparent 45%),
+      radial-gradient(ellipse at 100% 0%, rgba(201,162,39,0.06), transparent 40%), var(--bg);
+    color:var(--ink); font-family:"Segoe UI", Helvetica, Arial, sans-serif; min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+  }
+  .disp{ font-family:"Arial Narrow","Helvetica Neue Condensed","Roboto Condensed",Arial,sans-serif;
+    font-weight:800; text-transform:uppercase; letter-spacing:0.08em; }
+  .mono{ font-family:"Consolas","SFMono-Regular",Menlo,monospace; letter-spacing:0.02em; }
+
+  .topbar{ display:flex; align-items:center; justify-content:space-between; padding:14px 28px;
+    border-bottom:1px solid var(--line); background:rgba(10,12,16,0.6); position:sticky; top:0; z-index:50;
+    backdrop-filter:blur(6px); flex-wrap:wrap; gap:10px; }
+  .topbar .left{ display:flex; align-items:center; gap:18px; }
+  .back{ color:var(--ink-dim); text-decoration:none; font-size:13px; display:flex; align-items:center; gap:6px; }
+  .back:hover{ color:var(--ink); }
+  .dot{ width:8px; height:8px; border-radius:50%; background:var(--gold); box-shadow:0 0 8px var(--gold); }
+  .label{ font-size:12px; color:var(--ink-dim); }
+  .label b{ color:var(--ink); font-weight:700; }
+
+  .hero{ position:relative; overflow:hidden; padding:44px 28px 30px; border-bottom:1px solid var(--line); }
+  .eyebrow{ font-size:12px; color:var(--gold); letter-spacing:0.25em; margin-bottom:12px; display:flex; align-items:center; gap:10px; }
+  .eyebrow .bar{ width:28px; height:2px; background:var(--gold); }
+  .hero h1{ font-size:clamp(30px,6vw,52px); line-height:0.95; }
+  .hero p.sub{ max-width:560px; margin-top:14px; color:var(--ink-dim); font-size:14.5px; line-height:1.6; }
+
+  .stats{ display:flex; gap:0; border-bottom:1px solid var(--line); overflow-x:auto; }
+  .stat{ flex:1; min-width:150px; padding:16px 20px; border-right:1px solid var(--line); }
+  .stat:last-child{ border-right:none; }
+  .stat .n{ font-size:26px; font-weight:800; }
+  .stat .l{ font-size:11px; color:var(--ink-dim); text-transform:uppercase; letter-spacing:0.1em; margin-top:2px; }
+
+  .toolbar{ max-width:1180px; margin:0 auto; padding:26px 28px 0; display:flex; gap:12px; flex-wrap:wrap; align-items:center; }
+  select, input[type=text]{
+    background:var(--panel); border:1px solid var(--line-bright); color:var(--ink);
+    padding:9px 12px; border-radius:5px; font-size:13px; font-family:inherit;
+  }
+  select:focus, input:focus{ outline:1px solid var(--gold); }
+  .toolbar .count{ margin-left:auto; font-size:12px; color:var(--ink-dim); }
+
+  .content{ max-width:1180px; margin:0 auto; padding:20px 28px 70px; }
+  .reg-group{ margin-bottom:26px; }
+  .reg-band{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:10px 16px; border-radius:6px 6px 0 0; font-size:15px;
+  }
+  .reg-band h2{ letter-spacing:0.08em; }
+  .reg-band .n{ font-size:11px; opacity:0.85; }
+
+  table{ width:100%; border-collapse:collapse; background:var(--panel); border:1px solid var(--line); border-top:none; border-radius:0 0 6px 6px; overflow:hidden; }
+  thead th{ text-align:left; font-size:11px; color:var(--ink-dim); text-transform:uppercase; letter-spacing:0.06em;
+    padding:10px 14px; border-bottom:1px solid var(--line); background:rgba(255,255,255,0.02); }
+  tbody td{ padding:12px 14px; font-size:13.5px; border-bottom:1px solid var(--line); }
+  tbody tr:last-child td{ border-bottom:none; }
+  tbody tr:hover{ background:rgba(255,255,255,0.02); }
+
+  .pill{ display:inline-flex; align-items:center; gap:6px; font-size:11.5px; padding:3px 9px; border-radius:20px; }
+  .pill.present{ background:rgba(74,122,74,0.18); color:var(--green-bright); }
+  .pill.absent{ background:rgba(156,43,43,0.18); color:var(--red-bright); }
+  .pill .d{ width:6px; height:6px; border-radius:50%; background:currentColor; }
+
+  .rap{ font-size:12px; }
+  .rap.non{ color:var(--red-bright); }
+  .rap.dispense{ color:var(--ink-dim); }
+  .rap.effectue{ color:var(--green-bright); }
+
+  .blames{ font-size:12.5px; }
+  .blames.b0{ color:var(--ink-dim); }
+  .blames.b1{ color:var(--gold); }
+  .blames.b2{ color:var(--red-bright); font-weight:700; }
+
+  .medal.yes{ display:inline-flex; align-items:center; justify-content:center; width:22px; height:22px;
+    border-radius:4px; background:rgba(74,122,74,0.22); color:var(--green-bright); font-weight:700; font-size:13px; }
+  .medal.no{ color:var(--ink-dim); }
+
+  /* ---- formulaire absence ---- */
+  .decl-wrap{ max-width:1180px; margin:0 auto; padding:26px 28px 0; }
+  .decl{
+    background:var(--panel); border:1px solid var(--line); border-radius:8px;
+    overflow:hidden;
+  }
+  .decl-head{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:16px 20px; cursor:pointer; user-select:none;
+  }
+  .decl-head .t{ display:flex; align-items:center; gap:10px; }
+  .decl-head h3{ font-size:15px; }
+  .decl-head .sub{ font-size:12px; color:var(--ink-dim); margin-top:2px; }
+  .decl-head .chev{ transition:transform .15s ease; color:var(--ink-dim); }
+  .decl.open .decl-head .chev{ transform:rotate(180deg); }
+  .decl-body{ max-height:0; overflow:hidden; transition:max-height .2s ease; border-top:1px solid transparent; }
+  .decl.open .decl-body{ max-height:420px; border-top-color:var(--line); }
+  .decl-form{ padding:18px 20px 22px; display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  .decl-form .full{ grid-column:1 / -1; }
+  .decl-form label{ font-size:11px; color:var(--ink-dim); text-transform:uppercase; letter-spacing:0.06em; display:block; margin-bottom:6px; }
+  .decl-form input, .decl-form select, .decl-form textarea{
+    width:100%; background:var(--panel-2); border:1px solid var(--line-bright); color:var(--ink);
+    padding:9px 12px; border-radius:5px; font-size:13.5px; font-family:inherit;
+  }
+  .decl-form textarea{ resize:vertical; min-height:60px; }
+  .decl-actions{ grid-column:1 / -1; display:flex; align-items:center; gap:12px; margin-top:4px; }
+  .decl-submit{
+    background:linear-gradient(180deg,#4752c4,#3a45ad); color:#fff; border:none;
+    padding:10px 18px; border-radius:5px; font-size:13px; font-weight:700; cursor:pointer;
+  }
+  .decl-submit:disabled{ opacity:0.5; cursor:not-allowed; }
+  .decl-status{ font-size:12.5px; }
+  .decl-status.ok{ color:var(--green-bright); }
+  .decl-status.err{ color:var(--red-bright); }
+  @media (max-width:600px){ .decl-form{ grid-template-columns:1fr; } }
+
+  .empty{ text-align:center; padding:40px 20px; color:var(--ink-dim); font-size:13px; }
+
+  .cta-row{ max-width:1180px; margin:0 auto; padding:0 28px 60px; display:flex; gap:14px; flex-wrap:wrap; }
+  .cta-card{ flex:1; min-width:260px; background:var(--panel); border:1px solid var(--line); border-radius:6px;
+    padding:20px; text-decoration:none; color:var(--ink); transition:border-color .15s ease, transform .15s ease; }
+  .cta-card:hover{ border-color:var(--line-bright); transform:translateY(-2px); }
+  .cta-card .tag{ font-size:10px; color:var(--gold); letter-spacing:0.1em; margin-bottom:8px; display:block; }
+  .cta-card h3{ font-size:17px; margin-bottom:6px; }
+  .cta-card p{ font-size:13px; color:var(--ink-dim); line-height:1.5; }
+
+  footer{ border-top:1px solid var(--line); padding:20px 28px; text-align:center; color:var(--ink-dim); font-size:11.5px; }
+
+  @media (max-width:700px){
+    thead{ display:none; }
+    table, tbody, tr, td{ display:block; width:100%; }
+    tbody tr{ border-bottom:1px solid var(--line); padding:10px 14px; }
+    tbody td{ border:none; padding:4px 0; display:flex; justify-content:space-between; gap:10px; }
+    tbody td::before{ content:attr(data-label); color:var(--ink-dim); font-size:11px; text-transform:uppercase; letter-spacing:0.04em; }
+  }
+</style>
+</head>
+<body>
+
+  <div class="topbar">
+    <div class="left">
+      <a class="back" href="index.html">← Hub</a>
+      <span class="dot"></span>
+      <span class="label mono">RÔLE VÉRIFIÉ — <b>ARC Alpha</b></span>
+    </div>
+  </div>
+
+  <div class="hero">
+    <div class="eyebrow"><span class="bar"></span> GRANDE ARMÉE DE LA RÉPUBLIQUE — SUIVI D'EFFECTIF</div>
+    <h1 class="disp">Effectif ARC Troopers</h1>
+    <p class="sub">Statut de présence, rapports hebdomadaires et blâmes en cours, par régiment.</p>
+  </div>
+
+  <div class="stats mono" id="stats"></div>
+
+  <div class="decl-wrap">
+    <div class="decl" id="declBox">
+      <div class="decl-head" onclick="document.getElementById('declBox').classList.toggle('open')">
+        <div class="t">
+          <span>📋</span>
+          <div>
+            <h3>Déclarer une absence</h3>
+            <div class="sub">Envoie directement un message dans le salon Discord « absences »</div>
+          </div>
+        </div>
+        <span class="chev">▾</span>
+      </div>
+      <div class="decl-body">
+        <form class="decl-form" id="declForm">
+          <div>
+            <label>Identifiant</label>
+            <input type="text" id="fId" placeholder="ex. 9418 Flame" required>
+          </div>
+          <div>
+            <label>Régiment</label>
+            <select id="fReg" required>
+              <option value="">Choisir…</option>
+              <option>327th</option><option>212th</option><option>104th</option>
+              <option>408th</option><option>501st</option><option>41st</option><option>65th</option>
+            </select>
+          </div>
+          <div>
+            <label>Absent du</label>
+            <input type="date" id="fStart" required>
+          </div>
+          <div>
+            <label>Absent jusqu'au</label>
+            <input type="date" id="fEnd" required>
+          </div>
+          <div class="full">
+            <label>Motif (optionnel)</label>
+            <textarea id="fReason" placeholder="ex. vacances, indisponible IRL…"></textarea>
+          </div>
+          <div class="decl-actions">
+            <button type="submit" class="decl-submit" id="declSubmit">Envoyer au salon Discord</button>
+            <span class="decl-status" id="declStatus"></span>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <select id="filterReg"></select>
+    <select id="filterStatut">
+      <option value="all">Tous les statuts</option>
+      <option value="present">Présents</option>
+      <option value="absent">Absents</option>
+    </select>
+    <select id="filterBlame">
+      <option value="all">Tous les blâmes</option>
+      <option value="none">Sans blâme</option>
+      <option value="1">1 blâme</option>
+      <option value="2plus">2 blâmes ou +</option>
+    </select>
+    <input type="text" id="search" placeholder="Rechercher un identifiant…">
+    <span class="count mono" id="resultCount"></span>
+  </div>
+
+  <div class="content" id="content"></div>
+
+  <div class="cta-row">
+    <a class="cta-card" href="absences.html">
+      <span class="tag">LIÉ</span>
+      <h3>Voir les absences en cours</h3>
+      <p>Liste détaillée des ARC Troopers actuellement absents, avec dates de retour prévues.</p>
+    </a>
+    <a class="cta-card" href="index.html">
+      <span class="tag">RETOUR</span>
+      <h3>Retour au Hub</h3>
+      <p>Règlement, connaissances et médaille des ARC Troopers.</p>
+    </a>
+  </div>
+
+  <footer class="mono">ARC-HUB // EFFECTIF — instantané manuel du tableur officiel, non synchronisé en direct</footer>
+
+<script>
+const REG_COLORS = {
+  "327th": { bg:"#F1C232", text:"#1a1a1a" },
+  "212th": { bg:"#FF9900", text:"#1a1a1a" },
+  "104th": { bg:"#999999", text:"#ffffff" },
+  "408th": { bg:"#9900FF", text:"#ffffff" },
+  "501st": { bg:"#0B5394", text:"#ffffff" },
+  "41st":  { bg:"#38761D", text:"#ffffff" },
+  "65th":  { bg:"#666666", text:"#ffffff" }
+};
+
+const ROSTER = [
+  {reg:"327th", id:"9418 Flame", arrivee:"01/04/26", statut:"absent", dates:"13/07 → 19/07", rapport:"non", blames:2, medaille:true},
+  {reg:"327th", id:"7896 Cani", arrivee:"09/07/26", statut:"present", dates:"", rapport:"non", blames:0, medaille:false},
+  {reg:"212th", id:"9329 Harox", arrivee:"13/05/26", statut:"present", dates:"", rapport:"dispense", blames:0, medaille:true},
+  {reg:"212th", id:"5145 Cosmys", arrivee:"29/06/26", statut:"present", dates:"", rapport:"non", blames:0, medaille:true},
+  {reg:"212th", id:"1212 Sekiro", arrivee:"18/04/26", statut:"absent", dates:"12/07 → 20/07", rapport:"non", blames:0, medaille:true},
+  {reg:"104th", id:"Dash 11-29 Niner", arrivee:"28/04/26", statut:"absent", dates:"30/06 → 25/07", rapport:"dispense", blames:1, medaille:false},
+  {reg:"408th", id:"2320 Angel", arrivee:"30/11/25", statut:"absent", dates:"14/07 → 20/07", rapport:"non", blames:0, medaille:true},
+  {reg:"408th", id:"1259 Aura", arrivee:"18/06/26", statut:"absent", dates:"04/07 → 19/07", rapport:"dispense", blames:0, medaille:true},
+  {reg:"41st", id:"7782 Tassin", arrivee:"01/03/26", statut:"present", dates:"", rapport:"dispense", blames:0, medaille:true},
+  {reg:"41st", id:"6907 Renan", arrivee:"16/07/26", statut:"present", dates:"", rapport:"dispense", blames:0, medaille:false},
+  {reg:"41st", id:"1385 Théo Pow", arrivee:"25/05/26", statut:"present", dates:"", rapport:"effectue", blames:1, medaille:false}
+];
+
+const RAP_LABEL = { non:"Non effectué", dispense:"Dispensé", effectue:"Effectué" };
+
+function buildStats(){
+  const total = ROSTER.length;
+  const absents = ROSTER.filter(r=>r.statut==="absent").length;
+  const blamesActifs = ROSTER.reduce((s,r)=>s+r.blames,0);
+  const nonEffectue = ROSTER.filter(r=>r.rapport==="non").length;
+  document.getElementById('stats').innerHTML = `
+    <div class="stat"><div class="n">${total}</div><div class="l">Soldats suivis</div></div>
+    <div class="stat"><div class="n" style="color:var(--red-bright)">${absents}</div><div class="l">Absents actuellement</div></div>
+    <div class="stat"><div class="n" style="color:var(--gold)">${blamesActifs}</div><div class="l">Blâmes actifs</div></div>
+    <div class="stat"><div class="n" style="color:var(--red-bright)">${nonEffectue}</div><div class="l">Rapports non effectués</div></div>
+  `;
+}
+
+function buildRegFilter(){
+  const regs = [...new Set(ROSTER.map(r=>r.reg))];
+  const sel = document.getElementById('filterReg');
+  sel.innerHTML = `<option value="all">Tous les régiments</option>` + regs.map(r=>`<option value="${r}">${r}</option>`).join('');
+}
+
+function blameClass(n){ return n===0 ? 'b0' : n===1 ? 'b1' : 'b2'; }
+function blameLabel(n){ return n===0 ? '—' : n+' blâme'+(n>1?'s':''); }
+
+function render(){
+  const reg = document.getElementById('filterReg').value;
+  const statut = document.getElementById('filterStatut').value;
+  const blame = document.getElementById('filterBlame').value;
+  const q = document.getElementById('search').value.trim().toLowerCase();
+
+  let rows = ROSTER.filter(r=>{
+    if(reg!=='all' && r.reg!==reg) return false;
+    if(statut!=='all' && r.statut!==statut) return false;
+    if(blame==='none' && r.blames!==0) return false;
+    if(blame==='1' && r.blames!==1) return false;
+    if(blame==='2plus' && r.blames<2) return false;
+    if(q && !r.id.toLowerCase().includes(q)) return false;
+    return true;
+  });
+
+  document.getElementById('resultCount').textContent = rows.length + " résultat" + (rows.length>1?'s':'');
+
+  const groups = {};
+  rows.forEach(r=>{ (groups[r.reg] = groups[r.reg]||[]).push(r); });
+
+  const content = document.getElementById('content');
+  if(rows.length===0){
+    content.innerHTML = `<div class="empty">Aucun soldat ne correspond à ces filtres.</div>`;
+    return;
+  }
+
+  content.innerHTML = Object.keys(groups).map(reg=>{
+    const list = groups[reg];
+    const c = REG_COLORS[reg] || { bg:"#666", text:"#fff" };
+    return `
+      <div class="reg-group">
+        <div class="reg-band" style="background:${c.bg}; color:${c.text};">
+          <h2 class="disp">${reg}</h2>
+          <span class="n mono">${list.length} soldat${list.length>1?'s':''}</span>
+        </div>
+        <table>
+          <thead><tr><th>Identifiant</th><th>Arrivée</th><th>Statut</th><th>Rapport</th><th>Blâme(s)</th><th>Médaille</th></tr></thead>
+          <tbody>
+            ${list.map(r=>`
+              <tr>
+                <td data-label="Identifiant">${r.id}</td>
+                <td data-label="Arrivée" class="mono">${r.arrivee}</td>
+                <td data-label="Statut">
+                  <span class="pill ${r.statut}"><span class="d"></span>${r.statut==='present'?'Présent':'Absent'}</span>
+                  ${r.dates ? `<div class="mono" style="font-size:11px;color:var(--ink-dim);margin-top:4px;">${r.dates}</div>` : ''}
+                </td>
+                <td data-label="Rapport"><span class="rap ${r.rapport}">${RAP_LABEL[r.rapport]}</span></td>
+                <td data-label="Blâme(s)"><span class="blames ${blameClass(r.blames)}">${blameLabel(r.blames)}</span></td>
+                <td data-label="Médaille">${r.medaille ? `<span class="medal yes" title="Médaille obtenue">✓</span>` : `<span class="medal no">—</span>`}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+    `;
+  }).join('');
+}
+
+buildStats();
+buildRegFilter();
+render();
+['filterReg','filterStatut','filterBlame','search'].forEach(id=>{
+  document.getElementById(id).addEventListener('input', render);
+});
+
+// ---- déclaration d'absence → webhook Discord ----
+// 1) Crée un webhook dans ton salon #absences (Paramètres du salon > Intégrations > Webhooks)
+// 2) Colle l'URL copiée ci-dessous, entre les guillemets
+const DISCORD_WEBHOOK_URL = "COLLE_TON_URL_DE_WEBHOOK_ICI";
+
+document.getElementById('declForm').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const id = document.getElementById('fId').value.trim();
+  const reg = document.getElementById('fReg').value;
+  const start = document.getElementById('fStart').value;
+  const end = document.getElementById('fEnd').value;
+  const reason = document.getElementById('fReason').value.trim();
+  const btn = document.getElementById('declSubmit');
+  const status = document.getElementById('declStatus');
+
+  if(DISCORD_WEBHOOK_URL.includes("COLLE_TON_URL")){
+    status.className = 'decl-status err';
+    status.textContent = "Le webhook Discord n'est pas encore configuré sur cette page.";
+    return;
+  }
+
+  const fmt = (d)=> d ? d.split('-').reverse().join('/') : '';
+  const payload = {
+    content: `📋 **Déclaration d'absence**\n**Identifiant :** ${id}\n**Régiment :** ${reg}\n**Période :** ${fmt(start)} → ${fmt(end)}${reason ? `\n**Motif :** ${reason}` : ''}`
+  };
+
+  btn.disabled = true;
+  status.className = 'decl-status';
+  status.textContent = "Envoi…";
+
+  try{
+    const res = await fetch(DISCORD_WEBHOOK_URL, {
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body: JSON.stringify(payload)
+    });
+    if(res.ok){
+      status.className = 'decl-status ok';
+      status.textContent = "Envoyé ! Ton absence a été signalée dans le salon.";
+      document.getElementById('declForm').reset();
+    } else {
+      throw new Error("Réponse Discord: " + res.status);
+    }
+  } catch(err){
+    status.className = 'decl-status err';
+    status.textContent = "Échec de l'envoi — réessaie ou préviens un ARC Alpha directement.";
+  } finally {
+    btn.disabled = false;
+  }
+});
+</script>
+</body>
+</html>
